@@ -2,6 +2,8 @@ package com.dluong.pet.domain.usecase
 
 import com.dluong.pet.domain.model.Cat
 import com.dluong.pet.domain.repository.FavoriteCatRepository
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Observer
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -16,7 +18,7 @@ class ObserveFavoriteCatsUseCase @Inject constructor(
     /**
      * Invokes the use case to observe favorite cats.
      *
-     * @return A flow of result containing a list of favorite cats.
+     * @return An [Observer] that emits the result of the favorite cats.
      */
-    operator fun invoke(): Flow<Result<List<Cat>>> = favoriteCatRepository.observeFavoriteCats()
+    operator fun invoke(): Observable<Result<List<Cat>>> = favoriteCatRepository.observeFavoriteCats()
 }

@@ -1,5 +1,6 @@
 package com.dluong.pet.di
 
+import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
@@ -21,8 +22,8 @@ interface AppModule {
     companion object {
         @Provides
         @Singleton
-        fun provideMoshi(): com.squareup.moshi.Moshi =
-            com.squareup.moshi.Moshi.Builder()
+        fun provideMoshi(): Moshi =
+            Moshi.Builder()
                 .addLast(KotlinJsonAdapterFactory())
                 .build()
     }

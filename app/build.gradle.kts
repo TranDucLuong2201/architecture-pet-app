@@ -134,6 +134,11 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.bundles.kotlinx.coroutines)
     implementation(libs.coil.compose)
+
+    implementation(libs.rxjava)
+    implementation(libs.rxandroid)
+    implementation(libs.androidx.room.rxjava3)
+
 }
 class RoomSchemaArgProvider(
     @get:InputDirectory

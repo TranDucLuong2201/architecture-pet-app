@@ -2,6 +2,8 @@ package com.dluong.pet.data.di
 
 import com.dluong.pet.data.repository.FavoriteCatRepositoryImpl
 import com.dluong.pet.data.repository.VoteCatRepositoryImpl
+import com.dluong.pet.data.utils.ConnectivityManagerNetworkMonitor
+import com.dluong.pet.data.utils.NetworkMonitor
 import com.dluong.pet.domain.repository.FavoriteCatRepository
 import com.dluong.pet.domain.repository.VoteCatRepository
 import dagger.Binds
@@ -31,4 +33,14 @@ interface DataModule {
      */
     @Binds
     fun bindVoteCatRepository(repository: VoteCatRepositoryImpl): VoteCatRepository
+
+    /**
+     * Binds the implementation of [NetworkMonitor] to its interface.
+     * This allows for dependency injection of the network monitor implementation.
+     *
+     * @param networkMonitor The implementation of [NetworkMonitor].
+     * @return The bound [NetworkMonitor] instance.
+     */
+    @Binds
+    fun bindNetworkMonitor(networkMonitor: ConnectivityManagerNetworkMonitor): NetworkMonitor
 }

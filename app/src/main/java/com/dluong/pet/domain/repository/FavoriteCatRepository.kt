@@ -1,7 +1,7 @@
 package com.dluong.pet.domain.repository
 
 import com.dluong.pet.domain.model.Cat
-import kotlinx.coroutines.flow.Flow
+import io.reactivex.rxjava3.core.Observable
 
 /**
  * Interface for managing favorite cats.
@@ -13,5 +13,5 @@ interface FavoriteCatRepository {
 
     suspend fun voteUp(cat: Cat): Result<Unit>
 
-    fun observeFavoriteCats(): Flow<Result<List<Cat>>>
+    fun observeFavoriteCats(): Observable<Result<List<Cat>>>
 }

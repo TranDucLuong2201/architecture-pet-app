@@ -1,4 +1,4 @@
-package com.dluong.pet.presentation.favorite
+package com.dluong.pet.presentation.home
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,15 +11,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
-import com.dluong.pet.domain.model.Cat
+import com.dluong.pet.presentation.favorite.CatItem
 import com.dluong.pet.ui.navigation.PetsNavController
 
 @Composable
-fun FavoriteScreen(navController: PetsNavController) {
-    val viewModel: FavoriteViewModel = hiltViewModel()
+fun HomeScreen(navController: PetsNavController) {
+    val viewModel: HomeViewModel = hiltViewModel()
     val voteState = viewModel.voteStateFlow.collectAsState(initial = VoteUiState.Loading)
 
     LazyRow(
@@ -71,14 +69,4 @@ fun FavoriteScreen(navController: PetsNavController) {
     LaunchedEffect(Unit) {
         viewModel.getVoteCats()
     }
-}
-
-@Composable
-fun CatItem(cat: Cat) {
-    AsyncImage(
-        model = cat.url,
-        contentDescription = "Cat Image",
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Fit,
-    )
 }
