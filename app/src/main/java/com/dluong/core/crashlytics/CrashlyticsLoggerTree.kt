@@ -1,4 +1,4 @@
-package com.dluong.pet.crashlytics
+package com.dluong.core.crashlytics
 
 import android.util.Log
 import timber.log.Timber

@@ -1,16 +1,23 @@
 package com.dluong.pet.data.mapper
 
-import com.dluong.pet.data.remote.response.CatResponse
-import com.dluong.pet.domain.model.Cat
+import com.dluong.pet.data.remote.response.PetDto
+import com.dluong.pet.data.remote.response.PetResponse
+import com.dluong.pet.domain.model.Pet
 
 /**
- * Extension function to map [CatResponse] to [Cat] domain model.
+ * Extension function to map [PetResponse] to [Pet] domain model.
  *
- * @return [Cat] domain model.
+ * @return [Pet] domain model.
  */
-fun CatResponse.toCatDomain() = Cat(
+fun PetDto.toPet() = Pet(
     id = id,
-    url = urlImage,
+    urlImage = urlImage,
     width = width,
     height = height,
 )
+/**
+ * Extension function to map [PetResponse] to a list of [Pet] domain models.
+ *
+ * @return List of [Pet] domain models.
+ */
+fun PetResponse.toListPetDto() = pets.map { it.toPet() }

@@ -1,8 +1,8 @@
 package com.dluong.pet.domain.model
 
-data class Cat(
+data class Pet(
     val id: String,
-    val url: String,
+    val urlImage: String,
     val width: Int,
     val height: Int,
 )

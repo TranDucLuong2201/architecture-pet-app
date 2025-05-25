@@ -1,4 +1,4 @@
-package com.dluong.pet.ui.navigation
+package com.dluong.pet.presentation.ui.ext
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -9,16 +9,8 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.dluong.pet.presentation.ext.isGraphInitialized
-import com.dluong.pet.presentation.ext.isGraphNotInitialized
 import timber.log.Timber
 
-
-object MainDestinations {
-    const val HOME_ROUTE = "home"
-    const val FAVORITE_ROUTE = "favorite"
-    const val SEARCH_ROUTE = "search"
-}
 
 @Composable
 fun rememberPetsNavController(

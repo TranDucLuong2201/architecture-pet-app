@@ -3,6 +3,7 @@ package com.dluong.pet.data.di
 import android.content.Context
 import com.dluong.pet.data.local.PetsAppDatabase
 import com.dluong.pet.data.local.dao.FavoriteCatDao
+import com.dluong.pet.domain.repository.VotePetRepository
 import com.dluong.pet.utils.AppDispatcher
 import com.dluong.pet.utils.DispatcherType
 import dagger.Module
@@ -52,4 +53,11 @@ interface DatabaseModule {
     @Provides
     fun provideFavoriteCatDao(petsAppDatabase: PetsAppDatabase): FavoriteCatDao =
         petsAppDatabase.favoriteCatDao()
+
+    @Provides
+    @Singleton
+    fun provideIoDispatcher(
+        @AppDispatcher(DispatcherType.IO) ioDispatcher: CoroutineDispatcher
+    ): CoroutineDispatcher = ioDispatcher
+
 }

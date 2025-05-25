@@ -3,7 +3,7 @@ package com.dluong.pet.data.local.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.dluong.pet.domain.model.Cat
+import com.dluong.pet.domain.model.Pet
 import java.time.Instant
 
 @Entity(tableName = "favorite_cats")
@@ -21,10 +21,10 @@ data class FavoriteCatEntity(
     val createdAt: Instant,
 )
 
-fun FavoriteCatEntity.toCatDomain(): Cat =
-    Cat(
+fun FavoriteCatEntity.toCatDomain(): Pet =
+    Pet(
         id = id,
-        url = url,
+        urlImage = url,
         width = width,
         height = height,
     )

@@ -1,4 +1,4 @@
-package com.dluong.pet.presentation.ext
+package com.dluong.pet.presentation.ui.ext
 
 import androidx.navigation.NavController
 import timber.log.Timber

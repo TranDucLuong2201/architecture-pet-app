@@ -8,43 +8,72 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.core.content.getSystemService
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.reactivex.rxjava3.core.Observable
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class ConnectivityManagerNetworkMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : NetworkMonitor {
+    /**
+     * A [NetworkCallback] instance to monitor network changes.
+     * This is used to register and unregister the network callback.
+     */
     private var networkCallback: NetworkCallback? = null
 
-    // Observable that emits the current connectivity status.
-    // It uses the ConnectivityManager to check if the device is connected to the internet.
-    // If the ConnectivityManager is null, it emits false and completes.
-    override val isConnected: Observable<Boolean> = Observable.create<Boolean> { emitter ->
+
+    private val networkRequest: NetworkRequest by lazy {
+        NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+    }
+
+    // The network callback instance to track network changes.
+    override val isOnline: Flow<Boolean> = callbackFlow {
         val connectivityManager = context.getSystemService<ConnectivityManager>()
         if (connectivityManager == null) {
-            emitter.onNext(false)
-            emitter.onComplete()
-            return@create
+            Timber.e("ConnectivityManager is null, emitting false and completing.")
+            channel.trySend(false)
+            channel.close()
+            return@callbackFlow
         }
+
+        var activeNetworkCount = 0
 
         /**
          * The callback's methods are invoked on changes to *any* network matching the [NetworkRequest],
          * not just the active network. So we can simply track the presence (or absence) of such [Network].
          */
         val callback = object : NetworkCallback() {
-            private val networks = mutableSetOf<Network>()
-
             override fun onAvailable(network: Network) {
-                networks += network
-                emitter.onNext(networks.isNotEmpty())
+                activeNetworkCount++
+                channel.trySend(activeNetworkCount > 0)
+                Timber.e("Network available: $network")
                 super.onAvailable(network)
             }
 
+            override fun onUnavailable() {
+                super.onUnavailable()
+                trySend(false)
+            }
+
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities
+            ) {
+                super.onCapabilitiesChanged(network, networkCapabilities)
+                val connected = networkCapabilities.hasCapability(
+                    NetworkCapabilities.NET_CAPABILITY_VALIDATED
+                )
+                trySend(connected)
+            }
+
             override fun onLost(network: Network) {
-                networks -= network
-                emitter.onNext(networks.isNotEmpty())
+                activeNetworkCount--
+                channel.trySend(activeNetworkCount > 0)
+                Timber.e("Network lost: $network")
                 super.onLost(network)
             }
         }
@@ -53,67 +82,51 @@ class ConnectivityManagerNetworkMonitor @Inject constructor(
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
 
-        /**
-         * Sends the latest connectivity status to the underlying channel.
-         */
-        try {
-            connectivityManager.registerNetworkCallback(request, callback)
+        connectivityManager.registerNetworkCallback(request, callback)
 
-        } catch (e: Exception) {
-            emitter.onError(e)
-        }
+        channel.trySend(connectivityManager.isCurrentlyConnected())
 
-        /**
-         * Emit the current connectivity status when the observer subscribes.
-         */
-        emitter.onNext(connectivityManager.isCurrentlyConnected())
-
-        /**
-         * Unregister the network callback when the observer unsubscribes.
-         */
-        emitter.setCancellable {
-            connectivityManager.unregisterNetworkCallback(callback)
+        Timber.d("Network callback registered, initial connectivity: ${connectivityManager.isCurrentlyConnected()}")
+        awaitClose {
+            try {
+                connectivityManager.unregisterNetworkCallback(callback)
+                Timber.d("Network callback unregistered")
+            } catch (e: Exception) {
+                Timber.e("Error unregistering network callback: ${e.message}")
+            }
         }
     }
-        // Conflate the emissions to avoid sending multiple updates for the same connectivity status.
-        .distinctUntilChanged()
-        .debounce(300, TimeUnit.MILLISECONDS)
 
     override suspend fun registerNetworkCallback() {
-        val connectivityManager = context.getSystemService<ConnectivityManager>() ?: return
-        val request = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-        networkCallback = object : NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                super.onAvailable(network)
-                Timber.d("Network available: $network")
-            }
+        context.getSystemService<ConnectivityManager>()?.let { connectivityManager ->
+            try {
+                networkCallback = object : NetworkCallback() {
+                    override fun onAvailable(network: Network) {
+                        Timber.d("Network available: $network")
+                    }
 
-            override fun onLost(network: Network) {
-                super.onLost(network)
-                Timber.d("Network lost: $network")
+                    override fun onLost(network: Network) {
+                        Timber.d("Network lost: $network")
+                    }
+                }
+                connectivityManager.registerNetworkCallback(networkRequest, networkCallback!!)
+                Timber.d("Network callback registered")
+            } catch (e: Exception) {
+                Timber.e("Error registering network callback: ${e.message}")
             }
-        }
-        try {
-            connectivityManager.registerNetworkCallback(request, networkCallback!!)
-            Timber.d("Network callback registered")
-
-        } catch (e: Exception) {
-            // Handle the exception
-            Timber.e("Error registering network callback: ${e.message}")
-        }
+        } ?: Timber.e("ConnectivityManager is null, cannot register network callback")
     }
 
     override suspend fun unregisterNetworkCallback() {
-        val connectivityManager = context.getSystemService<ConnectivityManager>() ?: return
-        try {
-            networkCallback?.let {
-                connectivityManager.unregisterNetworkCallback(it)
-                Timber.d("Network callback unregistered")
+        context.getSystemService<ConnectivityManager>()?.let { connectivityManager ->
+            try {
+                networkCallback?.let {
+                    connectivityManager.unregisterNetworkCallback(it)
+                    Timber.e("Network callback unregistered")
+                }
+            } catch (e: Exception) {
+                Timber.e("Error unregistering network callback: ${e.message}")
             }
-        } catch (e: Exception) {
-            Timber.e("Error unregistering network callback: ${e.message}")
         }
     }
 }

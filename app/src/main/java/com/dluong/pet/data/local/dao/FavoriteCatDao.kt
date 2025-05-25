@@ -7,12 +7,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.dluong.pet.data.local.entity.FavoriteCatEntity
-import io.reactivex.rxjava3.core.Observable
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FavoriteCatDao {
     @Query("SELECT * FROM favorite_cats ORDER BY created_at DESC")
-    fun observerAll(): Observable<List<FavoriteCatEntity>>
+    fun observerAll(): Flow<List<FavoriteCatEntity>>
 
     @Insert
     suspend fun insertMany(cats: List<FavoriteCatEntity>)

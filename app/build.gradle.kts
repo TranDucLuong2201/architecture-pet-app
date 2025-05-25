@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.dagger.hilt.android)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.gradle.spotless) apply false
-
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.startup.runtime)
+    implementation(libs.androidx.adaptive.navigation.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -138,6 +139,7 @@ dependencies {
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
     implementation(libs.androidx.room.rxjava3)
+    implementation(libs.bundles.ktor)
 
 }
 class RoomSchemaArgProvider(

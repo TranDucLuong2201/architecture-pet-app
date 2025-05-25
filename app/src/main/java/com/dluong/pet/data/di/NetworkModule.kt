@@ -1,5 +1,6 @@
 package com.dluong.pet.data.di
 
+import com.dluong.core.data.networking.HttpClientFactory
 import com.dluong.pet.BuildConfig
 import com.dluong.pet.data.remote.PetService
 import com.dluong.pet.data.remote.interceptor.NetworkInterceptor
@@ -8,6 +9,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -91,6 +94,7 @@ object NetworkModule {
             .addNetworkInterceptor(httpLoggingInterceptor)
             .addInterceptor(authorizationInterceptor)
             .build()
+
     /**
      * Provides a Retrofit instance for the PetService API.
      * @param moshi The Moshi instance for JSON serialization/deserialization.
@@ -121,5 +125,9 @@ object NetworkModule {
     fun providePetsService(
         @ApiRequest retrofit: Retrofit,
     ): PetService = retrofit.create(PetService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideHttpClientFactory() : HttpClient = HttpClientFactory.create(CIO.create())
 
 }

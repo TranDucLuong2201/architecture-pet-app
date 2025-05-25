@@ -1,4 +1,4 @@
-package com.dluong.pet.ui.theme
+package com.dluong.pet.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

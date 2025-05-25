@@ -1,15 +1,16 @@
 package com.dluong.pet.data.di
 
 import com.dluong.pet.data.repository.FavoriteCatRepositoryImpl
-import com.dluong.pet.data.repository.VoteCatRepositoryImpl
+import com.dluong.pet.data.repository.VotePetRepositoryImp
 import com.dluong.pet.data.utils.ConnectivityManagerNetworkMonitor
 import com.dluong.pet.data.utils.NetworkMonitor
 import com.dluong.pet.domain.repository.FavoriteCatRepository
-import com.dluong.pet.domain.repository.VoteCatRepository
+import com.dluong.pet.domain.repository.VotePetRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -24,15 +25,17 @@ interface DataModule {
     @Binds
     fun favoriteCatRepositoryImpl(repository: FavoriteCatRepositoryImpl): FavoriteCatRepository
 
+    @Binds
+    fun votePetRepositoryImpl(repository: VotePetRepositoryImp): VotePetRepository
+
     /**
-     * Binds the implementation of [VoteCatRepository] to its interface.
+     * Binds the implementation of [VotePetRepository] to its interface.
      * This allows for dependency injection of the repository implementation.
      *
-     * @param repository The implementation of [VoteCatRepository].
-     * @return The bound [VoteCatRepository] instance.
+     * @param repository The implementation of [VotePetRepository].
+     * @return The bound [VotePetRepository] instance.
      */
-    @Binds
-    fun bindVoteCatRepository(repository: VoteCatRepositoryImpl): VoteCatRepository
+
 
     /**
      * Binds the implementation of [NetworkMonitor] to its interface.

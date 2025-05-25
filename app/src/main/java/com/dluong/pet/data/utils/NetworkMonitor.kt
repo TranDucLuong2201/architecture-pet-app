@@ -1,11 +1,9 @@
 package com.dluong.pet.data.utils
 
-import io.reactivex.rxjava3.core.Observable
+import kotlinx.coroutines.flow.Flow
 
 interface NetworkMonitor {
-    val isConnected: Observable<Boolean>
-
+    val isOnline: Flow<Boolean>
     suspend fun registerNetworkCallback()
-
     suspend fun unregisterNetworkCallback()
 }
