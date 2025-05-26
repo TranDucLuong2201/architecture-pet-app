@@ -1,21 +1,23 @@
 package com.dluong.pet.presentation.home
 
 import androidx.lifecycle.viewModelScope
+import com.dluong.core.domain.utils.NetworkError
+import com.dluong.core.domain.utils.fold
 import com.dluong.core.domain.utils.onError
 import com.dluong.core.domain.utils.onSuccess
+import com.dluong.pet.domain.model.Pet
 import com.dluong.pet.domain.repository.VotePetRepository
 import com.dluong.pet.domain.usecase.GetVoteCatsUseCase
 import com.dluong.pet.presentation.ui.NetworkStatusViewModel
 import com.dluong.pet.presentation.ui.PetsEvent
 import com.dluong.pet.presentation.ui.ext.PetsListState
-import com.dluong.pet.presentation.ui.ext.SingleEvent
-import com.dluong.pet.presentation.ui.ext.UiState
 import com.dluong.pet.utils.WHILE_UI_SUBSCRIBED
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,40 +26,50 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val petsDataSource: VotePetRepository,
+    private val getVoteCatsUseCase: GetVoteCatsUseCase,
 ) : NetworkStatusViewModel() {
 
-    private val _state = MutableStateFlow(PetsListState())
-    val state = _state
-        .stateIn(
-            scope = viewModelScope,
-            started = WHILE_UI_SUBSCRIBED,
-            initialValue = PetsListState()
-        )
+    private val voteMutableStateFlow = MutableStateFlow<VoteUiState>(VoteUiState.Loading)
+    val voteStateFlow = voteMutableStateFlow.asStateFlow()
 
-    init {
-        loadPets()
-    }
+    private val singleEvent = Channel<VoteSingleEvent>(Channel.UNLIMITED)
+    val singleEventFlow: Flow<VoteSingleEvent> get() = singleEvent.receiveAsFlow()
 
-    private fun loadPets() {
+    fun getVoteCats() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-
-            petsDataSource.getVoteCats(SORT_BY, PAGE_SIZE)
-                .onSuccess { pets ->
-                    _state.update {
-                        it.copy(isLoading = false, pets = pets)
-                    }
-                    _events.send(PetsEvent.Success("Pets loaded successfully"))
+            voteMutableStateFlow.value = getVoteCatsUseCase(sortBy = SORT_BY, limit = PAGE_SIZE)
+                .onError { throwable ->
+                    singleEvent.trySend(
+                        VoteSingleEvent.GetListError(
+                            throwable,
+                        ),
+                    )
                 }
-                .onError { error ->
-                    _state.update { it.copy(isLoading = false) }
-                    _events.send(PetsEvent.Error(error))
-                }
+                .fold(
+                    onSuccess = VoteUiState::Success,
+                    onFailure = VoteUiState::Error,
+                )
         }
     }
 
     companion object {
         private const val SORT_BY = "RANDOM"
-        private const val PAGE_SIZE = 20
+        private const val PAGE_SIZE = 30
     }
+}
+
+sealed interface VoteUiState {
+    data object Loading : VoteUiState
+
+    data class Success(val data: List<Pet>) : VoteUiState
+
+    data class Error(val error: NetworkError) : VoteUiState
+}
+
+sealed interface VoteSingleEvent {
+    data object VoteError : VoteSingleEvent
+
+    data class GetListError(
+        val throwable: NetworkError,
+    ) : VoteSingleEvent
 }

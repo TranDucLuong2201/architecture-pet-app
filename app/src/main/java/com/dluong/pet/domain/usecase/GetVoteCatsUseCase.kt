@@ -25,7 +25,7 @@ class GetVoteCatsUseCase @Inject constructor(
         sortBy: String,
         limit: Int,
     ): Result<List<Pet>, NetworkError> =
-        voteCatRepository.getVoteCats(
+        voteCatRepository.getVoteCatsUseCase(
             sortBy = sortBy,
             limit = limit,
         )

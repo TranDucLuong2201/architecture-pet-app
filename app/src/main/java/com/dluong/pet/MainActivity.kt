@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
                         SearchScreen(navController)
                     }
                     composable(MainDestinations.FAVORITE_ROUTE) {
-                        FavoriteScreen(navController)
+                        FavoriteScreen()
                     }
                 }
             }

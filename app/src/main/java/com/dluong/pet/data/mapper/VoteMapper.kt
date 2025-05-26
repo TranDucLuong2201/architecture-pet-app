@@ -1,7 +1,6 @@
 package com.dluong.pet.data.mapper
 
 import com.dluong.pet.data.remote.response.PetDto
-import com.dluong.pet.data.remote.response.PetResponse
 import com.dluong.pet.domain.model.Pet
 
 /**
@@ -20,4 +19,3 @@ fun PetDto.toPet() = Pet(
  *
  * @return List of [Pet] domain models.
  */
-fun PetResponse.toListPetDto() = pets.map { it.toPet() }

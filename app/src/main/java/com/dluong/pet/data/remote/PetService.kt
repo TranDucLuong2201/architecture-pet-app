@@ -1,6 +1,6 @@
 package com.dluong.pet.data.remote
 
-import com.dluong.pet.data.remote.response.PetResponse
+import com.dluong.pet.data.remote.response.PetDto
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -15,5 +15,5 @@ interface PetService {
         @Query("page") page: Int? = null,
         @Query("category_ids") categoryIds: List<Int>? = null,
         @Query("breed_id") breedId: String? = null,
-    ): Response<PetResponse>
+    ): Response<List<PetDto>>
 }

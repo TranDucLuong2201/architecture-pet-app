@@ -11,6 +11,4 @@ data class PetDto(
     @Json(name = "width") val width: Int,
     @Json(name = "height") val height: Int,
 )
-data class PetResponse(
-    val pets: List<PetDto>,
-)
+
