@@ -26,7 +26,7 @@ suspend inline fun <reified T> safeCall(
     context: CoroutineContext = EmptyCoroutineContext,
     crossinline block: suspend () -> Response<T>
 ): Result<T, NetworkError> {
-    contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
+    contract { callsInPlace(block, InvocationKind.UNKNOWN) }
 
     return try {
         val response = withContext(context) { block() }

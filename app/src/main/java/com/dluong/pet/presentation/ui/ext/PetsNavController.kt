@@ -60,6 +60,12 @@ class PetsNavController(
             }
         }
     }
+    fun navigateAndPopUp(route: String, popUp: String) {
+        navController.navigate(route) {
+            launchSingleTop = true
+            popUpTo(popUp) { inclusive = true }
+        }
+    }
 }
 
 /**

@@ -11,51 +11,38 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class ConnectivityManagerNetworkMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : NetworkMonitor {
-    /**
-     * A [NetworkCallback] instance to monitor network changes.
-     * This is used to register and unregister the network callback.
-     */
-    private var networkCallback: NetworkCallback? = null
 
-
-    private val networkRequest: NetworkRequest by lazy {
-        NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-    }
-
-    // The network callback instance to track network changes.
     override val isOnline: Flow<Boolean> = callbackFlow {
         val connectivityManager = context.getSystemService<ConnectivityManager>()
         if (connectivityManager == null) {
             Timber.e("ConnectivityManager is null, emitting false and completing.")
-            channel.trySend(false)
-            channel.close()
+            trySend(false)
+            close()
             return@callbackFlow
         }
 
-        var activeNetworkCount = 0
+        // Send initial state
+        trySend(connectivityManager.isCurrentlyConnected())
 
-        /**
-         * The callback's methods are invoked on changes to *any* network matching the [NetworkRequest],
-         * not just the active network. So we can simply track the presence (or absence) of such [Network].
-         */
         val callback = object : NetworkCallback() {
             override fun onAvailable(network: Network) {
-                activeNetworkCount++
-                channel.trySend(activeNetworkCount > 0)
-                Timber.e("Network available: $network")
                 super.onAvailable(network)
+                Timber.d("Network available: $network")
+                trySend(true)
             }
 
-            override fun onUnavailable() {
-                super.onUnavailable()
+            override fun onLost(network: Network) {
+                super.onLost(network)
+                Timber.d("Network lost: $network")
                 trySend(false)
             }
 
@@ -65,16 +52,17 @@ class ConnectivityManagerNetworkMonitor @Inject constructor(
             ) {
                 super.onCapabilitiesChanged(network, networkCapabilities)
                 val connected = networkCapabilities.hasCapability(
+                    NetworkCapabilities.NET_CAPABILITY_INTERNET
+                ) && networkCapabilities.hasCapability(
                     NetworkCapabilities.NET_CAPABILITY_VALIDATED
                 )
                 trySend(connected)
             }
 
-            override fun onLost(network: Network) {
-                activeNetworkCount--
-                channel.trySend(activeNetworkCount > 0)
-                Timber.e("Network lost: $network")
-                super.onLost(network)
+            override fun onUnavailable() {
+                super.onUnavailable()
+                Timber.d("Network unavailable")
+                trySend(false)
             }
         }
 
@@ -82,55 +70,43 @@ class ConnectivityManagerNetworkMonitor @Inject constructor(
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
 
-        connectivityManager.registerNetworkCallback(request, callback)
+        try {
+            connectivityManager.registerNetworkCallback(request, callback)
+            Timber.d("Network callback registered successfully")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to register network callback")
+            // Still try to provide connectivity info even if callback registration fails
+            trySend(connectivityManager.isCurrentlyConnected())
+        }
 
-        channel.trySend(connectivityManager.isCurrentlyConnected())
-
-        Timber.d("Network callback registered, initial connectivity: ${connectivityManager.isCurrentlyConnected()}")
         awaitClose {
             try {
                 connectivityManager.unregisterNetworkCallback(callback)
                 Timber.d("Network callback unregistered")
             } catch (e: Exception) {
-                Timber.e("Error unregistering network callback: ${e.message}")
+                Timber.e(e, "Error unregistering network callback")
             }
         }
-    }
+    }.distinctUntilChanged() // Only emit when connectivity actually changes
 
+    // Remove these methods as they're redundant and cause the TooManyRequestsException
     override suspend fun registerNetworkCallback() {
-        context.getSystemService<ConnectivityManager>()?.let { connectivityManager ->
-            try {
-                networkCallback = object : NetworkCallback() {
-                    override fun onAvailable(network: Network) {
-                        Timber.d("Network available: $network")
-                    }
-
-                    override fun onLost(network: Network) {
-                        Timber.d("Network lost: $network")
-                    }
-                }
-                connectivityManager.registerNetworkCallback(networkRequest, networkCallback!!)
-                Timber.d("Network callback registered")
-            } catch (e: Exception) {
-                Timber.e("Error registering network callback: ${e.message}")
-            }
-        } ?: Timber.e("ConnectivityManager is null, cannot register network callback")
+        // This is now handled in the Flow above
+        Timber.d("Network callback registration handled by Flow")
     }
 
     override suspend fun unregisterNetworkCallback() {
-        context.getSystemService<ConnectivityManager>()?.let { connectivityManager ->
-            try {
-                networkCallback?.let {
-                    connectivityManager.unregisterNetworkCallback(it)
-                    Timber.e("Network callback unregistered")
-                }
-            } catch (e: Exception) {
-                Timber.e("Error unregistering network callback: ${e.message}")
-            }
-        }
+        // This is now handled in the Flow's awaitClose
+        Timber.d("Network callback unregistration handled by Flow")
     }
 }
 
-private fun ConnectivityManager.isCurrentlyConnected() =
-    activeNetwork?.let(::getNetworkCapabilities)
-        ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+private fun ConnectivityManager.isCurrentlyConnected(): Boolean {
+    return try {
+        activeNetwork?.let(::getNetworkCapabilities)
+            ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    } catch (e: Exception) {
+        Timber.e(e, "Error checking network connectivity")
+        false
+    }
+}

@@ -1,6 +1,6 @@
 package com.dluong.pet.data.remote
 
-import com.dluong.pet.data.remote.response.PetDto
+import com.dluong.pet.data.remote.dto.PetDto
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query

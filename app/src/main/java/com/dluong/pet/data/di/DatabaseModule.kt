@@ -42,6 +42,10 @@ interface DatabaseModule {
                 context = appContext,
                 queryExecutor = ioDispatcher.asExecutor(),
             )
+
+        @Provides
+        fun provideFavoriteCatDao(petsAppDatabase: PetsAppDatabase): FavoriteCatDao =
+            petsAppDatabase.favoriteCatDao()
     }
 
     /**
@@ -50,9 +54,7 @@ interface DatabaseModule {
      * @param petsAppDatabase The database instance.
      * @return An instance of [FavoriteCatDao].
      */
-    @Provides
-    fun provideFavoriteCatDao(petsAppDatabase: PetsAppDatabase): FavoriteCatDao =
-        petsAppDatabase.favoriteCatDao()
+
 
     @Provides
     @Singleton

@@ -1,6 +1,8 @@
 [versions]
 agp = "8.8.2"
 coilCompose = "2.7.0"
+coilGif = "2.5.0"
+coilNetworkOkhttp = "3.2.0"
 kotlin = "2.1.10"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -10,6 +12,8 @@ activityCompose = "1.10.1"
 composeBom = "2025.05.00"
 ksp = "2.1.10-1.0.30"
 dagger = "2.56.2"
+lifecycleViewmodelKtx = "2.9.0"
+media3UiCompose = "1.7.1"
 navigationCompose = "2.9.0"
 okhttp3-core = "4.12.0"
 okhttp3-logging-intercepter = "4.12.0"
@@ -32,12 +36,20 @@ navigation-fragment = "1.2.0"
 material3WindowSizeClassAndroid = "1.3.2"
 ktor = "2.3.12"
 adaptiveNavigationAndroid = "1.1.0"
+media3Exoplayer = "1.7.1"
+media3Ui = "1.7.1"
+material3Android = "1.3.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+androidx-media3-exoplayer-dash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "media3UiCompose" }
+androidx-media3-ui-compose = { module = "androidx.media3:media3-ui-compose", version.ref = "media3UiCompose" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-room-rxjava3 = { module = "androidx.room:room-rxjava3", version.ref = "roomRxjava3" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coilGif" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -83,12 +95,16 @@ lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 flowExt = { module = "io.github.hoc081098:FlowExt", version.ref = "flowExt" }
 androidx-startup-runtime = { group = "androidx.startup", name = "startup-runtime", version.ref = "startupRuntime" }
 
+
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 androidx-adaptive-navigation-android = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation-android", version.ref = "adaptiveNavigationAndroid" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3Ui" }
+androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
 
 
 [plugins]
@@ -102,33 +118,91 @@ gradle-spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
 [bundles]
+# Lifecycle & ViewModel
+androidx-lifecycle = [
+    "androidx-lifecycle-viewmodel",
+    "androidx-lifecycle-runtime",
+    "androidx-lifecycle-livedata",
+    "androidx-lifecycle-common",
+    "androidx-lifecycle-viewmodel-ktx"
+]
 
+# Room DB
+androidx-room = [
+    "androidx-room-runtime",
+    "androidx-room-compiler",
+    "androidx-room-ktx",
+    "androidx-room-rxjava3"
+]
+
+# Navigation
+androidx-navigation = [
+    "androidx-navigation-compose",
+    "hilt-navigation-compose"
+]
+
+# Media3
+media3 = [
+    "androidx-media3-exoplayer",
+    "androidx-media3-exoplayer-dash",
+    "androidx-media3-ui",
+    "androidx-media3-ui-compose"
+]
+
+# Retrofit + OkHttp
 retrofit-okhttp3 = [
     "okhttp3-core",
     "okhttp3-logging-intercepter",
     "retrofit-core",
     "retrofit-converter-moshi"
 ]
+
+# Moshi
 moshi = [
     "moshi",
     "moshi-kotlin"
 ]
 
-androidx-lifecycle = [
-    "androidx-lifecycle-viewmodel",
-    "androidx-lifecycle-runtime",
-    "androidx-lifecycle-livedata",
-    "androidx-lifecycle-common"
-]
-
+# Coroutines
 kotlinx-coroutines = [
     "kotlinx-coroutines-core",
     "kotlinx-coroutines-android"
 ]
+
+# Coil (Image loading)
+coil = [
+    "coil-compose",
+    "coil-gif",
+    "coil-network-okhttp",
+]
+
+# Ktor (Network)
 ktor = [
     "ktor-client-cio",
     "ktor-client-content-negotiation",
     "ktor-client-core",
     "ktor-client-logging",
     "ktor-serialization-kotlinx-json"
+]
+
+# UI Testing
+androidx-ui-testing = [
+    "androidx-ui-test-junit4",
+    "androidx-ui-test-manifest"
+]
+
+# Compose UI
+androidx-compose-ui = [
+    "androidx-ui",
+    "androidx-ui-graphics",
+    "androidx-ui-tooling",
+    "androidx-ui-tooling-preview",
+    "androidx-material3"
+]
+
+# Dagger Hilt
+dagger-hilt = [
+    "dagger-hilt-android",
+    "dagger-hilt-compiler",
+    "dagger-hilt-test"
 ]

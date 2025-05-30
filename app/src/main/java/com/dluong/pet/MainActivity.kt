@@ -8,17 +8,21 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Scaffold
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.dluong.core.presentation.ObserveAsEvents
 import com.dluong.core.presentation.toString
 import com.dluong.pet.presentation.ui.components.BottomNavigationBar
 import com.dluong.pet.presentation.favorite.FavoriteScreen
 import com.dluong.pet.presentation.home.HomeScreen
-import com.dluong.pet.presentation.search.SearchScreen
+import com.dluong.pet.presentation.my_profile.ProfileScreen
 import com.dluong.pet.presentation.ui.NetworkStatusViewModel
-import com.dluong.pet.presentation.ui.ext.MainDestinations
 import com.dluong.pet.presentation.ui.PetsEvent
+import com.dluong.pet.presentation.ui.ext.MainDestinations
+import com.dluong.pet.presentation.ui.ext.PetsNavController
 import com.dluong.pet.presentation.ui.ext.rememberPetsNavController
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,10 +34,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            val navController = rememberPetsNavController()
+            val appState = rememberPetsNavController()
             Scaffold(
                 bottomBar = {
-                    BottomNavigationBar(navController)
+                    BottomNavigationBar(appState)
                 }
             ) {
                 val events = hiltViewModel<NetworkStatusViewModel>().events
@@ -60,20 +64,31 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 NavHost(
-                    navController = navController.navController,
+                    navController = appState.navController,
                     startDestination = MainDestinations.HOME_ROUTE,
                 ) {
-                    composable(MainDestinations.HOME_ROUTE) {
-                        HomeScreen()
-                    }
-                    composable(MainDestinations.SEARCH_ROUTE) {
-                        SearchScreen(navController)
-                    }
-                    composable(MainDestinations.FAVORITE_ROUTE) {
-                        FavoriteScreen()
-                    }
+                    setUpNavGraph(appState = appState)
                 }
             }
+        }
+    }
+
+    fun NavGraphBuilder.setUpNavGraph(
+        appState: PetsNavController,
+    ) {
+        composable(MainDestinations.HOME_ROUTE) {
+            HomeScreen()
+        }
+        composable(MainDestinations.FAVORITE_ROUTE) {
+            FavoriteScreen(openAndPopUp = { route, popUp ->
+                appState.navigateAndPopUp(
+                    route,
+                    popUp
+                )
+            })
+        }
+        composable(MainDestinations.MY_PROFILE) {
+            ProfileScreen()
         }
     }
 }

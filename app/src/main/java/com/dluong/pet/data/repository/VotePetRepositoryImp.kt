@@ -28,8 +28,4 @@ class VotePetRepositoryImp @Inject constructor(
             }
         }
     }
-
-    override suspend fun getPets(): Result<List<Pet>, NetworkError> {
-        TODO("Not yet implemented")
-    }
 }

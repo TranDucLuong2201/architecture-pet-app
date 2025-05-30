@@ -14,6 +14,9 @@ interface FavoriteCatDao {
     @Query("SELECT * FROM favorite_cats ORDER BY created_at DESC")
     fun observerAll(): Flow<List<FavoriteCatEntity>>
 
+    @Query("SELECT * FROM favorite_cats WHERE id = :id")
+    fun observeById(id: String): Flow<FavoriteCatEntity?>
+
     @Insert
     suspend fun insertMany(cats: List<FavoriteCatEntity>)
 

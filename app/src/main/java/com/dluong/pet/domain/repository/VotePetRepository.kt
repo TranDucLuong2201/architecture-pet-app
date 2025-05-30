@@ -9,6 +9,4 @@ interface VotePetRepository {
         sortBy: String,
         limit: Int,
     ): Result<List<Pet>, NetworkError>
-
-    suspend fun getPets() : Result<List<Pet>, NetworkError>
 }

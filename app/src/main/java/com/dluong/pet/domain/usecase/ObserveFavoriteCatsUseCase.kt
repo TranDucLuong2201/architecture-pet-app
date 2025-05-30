@@ -4,7 +4,6 @@ import com.dluong.core.domain.utils.NetworkError
 import com.dluong.pet.domain.model.Pet
 import com.dluong.pet.domain.repository.FavoriteCatRepository
 import io.reactivex.rxjava3.core.Observer
-import com.dluong.core.domain.utils.Result
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -21,6 +20,6 @@ class ObserveFavoriteCatsUseCase @Inject constructor(
      *
      * @return An [Observer] that emits the result of the favorite cats.
      */
-    operator fun invoke(): Flow<Result<List<Pet>, NetworkError>> =
+    operator fun invoke(): Flow<List<Pet>> =
         favoriteCatRepository.observeFavoriteCats()
 }

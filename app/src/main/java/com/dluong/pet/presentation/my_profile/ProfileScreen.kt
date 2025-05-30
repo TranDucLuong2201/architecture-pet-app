@@ -1,4 +1,4 @@
-package com.dluong.pet.presentation.search
+package com.dluong.pet.presentation.my_profile
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,14 +9,14 @@ import androidx.compose.ui.Modifier
 import com.dluong.pet.presentation.ui.ext.PetsNavController
 
 @Composable
-fun SearchScreen(
-    navController: PetsNavController
+fun ProfileScreen(
+
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Search")
+        Text(text = "Profile Screen")
     }
 }

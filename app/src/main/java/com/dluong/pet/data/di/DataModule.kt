@@ -32,7 +32,6 @@ interface DataModule {
      * Binds the implementation of [VotePetRepository] to its interface.
      * This allows for dependency injection of the repository implementation.
      *
-     * @param repository The implementation of [VotePetRepository].
      * @return The bound [VotePetRepository] instance.
      */
 

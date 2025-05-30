@@ -1,7 +1,11 @@
 package com.dluong.pet.data.mapper
 
-import com.dluong.pet.data.remote.response.PetDto
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.dluong.pet.data.local.entity.FavoriteCatEntity
+import com.dluong.pet.data.remote.dto.PetDto
 import com.dluong.pet.domain.model.Pet
+import java.time.Instant
 
 /**
  * Extension function to map [PetResponse] to [Pet] domain model.
@@ -15,7 +19,18 @@ fun PetDto.toPet() = Pet(
     height = height,
 )
 /**
- * Extension function to map [PetResponse] to a list of [Pet] domain models.
- *
- * @return List of [Pet] domain models.
+ * Extension function to convert a Pet domain model to FavoriteCatEntity.
+ * Uses current timestamp when adding to favorites.
  */
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+internal fun Pet.toFavoriteCatEntity(): FavoriteCatEntity {
+    return FavoriteCatEntity(
+        id = id,
+        url = urlImage,
+        width = width,
+        height = height,
+        createdAt = Instant.now(),
+    )
+}

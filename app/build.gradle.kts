@@ -22,21 +22,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        defaultConfig {
-            javaCompileOptions {
-                annotationProcessorOptions {
-                    compilerArgumentProviders(
-                        RoomSchemaArgProvider(
-                            File(projectDir, "schemas").apply {
-                                if (!exists()) {
-                                    check(mkdirs()) { "Cannot create $this" }
-                                }
-                            },
-                        ),
-                    )
-                }
-            }
-        }
+        // Remove the javaCompileOptions block - not needed for KSP
     }
 
     buildTypes {
@@ -54,13 +40,16 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     flavorDimensions.add("default")
     productFlavors {
         create("dev") {
@@ -90,66 +79,152 @@ android {
             )
         }
     }
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
 
+    // Giải quyết packaging conflicts
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/gradle/incremental.annotation.processors"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/LICENSE"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/license.txt"
+            excludes += "/META-INF/NOTICE"
+            excludes += "/META-INF/NOTICE.txt"
+            excludes += "/META-INF/notice.txt"
+            excludes += "/META-INF/ASL2.0"
+            excludes += "/META-INF/*.kotlin_module"
+            excludes += "/META-INF/annotations.kotlin_module"
+            // Fix Room compiler processing license conflict
+            excludes += "/META-INF/androidx/room/room-compiler-processing/LICENSE.txt"
+        }
+    }
+}
 
+// Configure KSP for Room schema export
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+// Giải quyết dependency resolution conflicts
+configurations.all {
+    resolutionStrategy {
+        // Force sử dụng version mới nhất của annotations
+        force("org.jetbrains:annotations:23.0.0")
+        force("org.jetbrains.kotlin:kotlin-stdlib:${libs.versions.kotlin.get()}")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${libs.versions.kotlin.get()}")
+
+        // Exclude các versions cũ gây conflict
+        exclude(group = "com.intellij", module = "annotations")
+    }
 }
 
 dependencies {
-
+    // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.startup.runtime)
+
+    // Compose BOM
+    implementation(platform(libs.androidx.compose.bom))
+
+    // Compose UI Bundle
+    implementation(libs.bundles.androidx.compose.ui)
+
+    // Lifecycle & ViewModel Bundle
+    implementation(libs.bundles.androidx.lifecycle)
+
+    // Navigation Bundle
+    implementation(libs.bundles.androidx.navigation)
+
+    // Room Database Bundle
+    implementation(libs.bundles.androidx.room) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-android")
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    ksp(libs.androidx.room.compiler)
+
+    // Dagger Hilt Bundle
+    implementation(libs.bundles.dagger.hilt) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    ksp(libs.dagger.hilt.compiler)
+
+    // Coroutines Bundle
+    implementation(libs.bundles.kotlinx.coroutines)
+
+    // Retrofit + OkHttp Bundle
+    implementation(libs.bundles.retrofit.okhttp3) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
+        exclude(group = "com.intellij", module = "annotations")
+    }
+
+    // Moshi Bundle
+    implementation(libs.bundles.moshi) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "com.intellij", module = "annotations")
+    }
+
+    // Ktor Bundle - Comment out nếu không sử dụng
+    implementation(libs.bundles.ktor) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
+        exclude(group = "com.intellij", module = "annotations")
+    }
+
+    // Media3 Bundle
+    implementation(libs.bundles.media3) {
+        exclude(group = "androidx.compose.ui", module = "ui")
+        exclude(group = "androidx.compose.ui", module = "ui-graphics")
+        exclude(group = "com.intellij", module = "annotations")
+    }
+
+    // Image Loading - Coil Bundle
+    implementation(libs.bundles.coil) {
+        exclude(group = "com.intellij", module = "annotations")
+    }
+
+    // RxJava
+    implementation(libs.rxjava) {
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    implementation(libs.rxandroid)
+
+    // Utilities
+    implementation(libs.timber) {
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    implementation(libs.glide) {
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    implementation(libs.lottie)
+    implementation(libs.flowExt)
+
+    // Material 3 Additional
+    implementation(libs.androidx.material3.android)
     implementation(libs.androidx.adaptive.navigation.android)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.bundles.androidx.ui.testing)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.bundles.androidx.lifecycle)
-    implementation(libs.bundles.retrofit.okhttp3)
-    implementation(libs.bundles.moshi)
-    implementation(libs.timber)
-    implementation(libs.glide)
-    implementation(libs.lottie)
-    implementation(libs.flowExt)
-
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.runtime)
-
-    implementation(libs.dagger.hilt.android)
-    ksp(libs.dagger.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.bundles.kotlinx.coroutines)
-    implementation(libs.coil.compose)
-
-    implementation(libs.rxjava)
-    implementation(libs.rxandroid)
-    implementation(libs.androidx.room.rxjava3)
-    implementation(libs.bundles.ktor)
+    // Hilt Testing
+    androidTestImplementation(libs.dagger.hilt.test)
+    kspAndroidTest(libs.dagger.hilt.compiler)
 
 }
-class RoomSchemaArgProvider(
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    val schemaDir: File,
-) : CommandLineArgumentProvider {
-    override fun asArguments(): Iterable<String> {
-        // Note: If you're using KSP, change the line below to return
-        // listOf("room.schemaLocation=${schemaDir.path}").
-        return listOf("-Aroom.schemaLocation=${schemaDir.path}")
-    }
-}
+
+// Remove the RoomSchemaArgProvider class - not needed for KSP

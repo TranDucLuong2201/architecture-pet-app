@@ -1,5 +1,8 @@
 package com.dluong.pet.data.di
 
+import androidx.room.processor.Context
+import coil3.ImageLoader
+import coil3.request.crossfade
 import com.dluong.core.data.networking.HttpClientFactory
 import com.dluong.pet.BuildConfig
 import com.dluong.pet.data.remote.PetService
@@ -8,6 +11,7 @@ import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -128,6 +132,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideHttpClientFactory() : HttpClient = HttpClientFactory.create(CIO.create())
+    fun provideHttpClientFactory(): HttpClient = HttpClientFactory.create(CIO.create())
+
+    @Provides
+    @Singleton
+    fun provideImageLoader(@ApplicationContext context: android.content.Context): ImageLoader {
+        return ImageLoader.Builder(context)
+            .crossfade(true)
+            .build()
+    }
 
 }

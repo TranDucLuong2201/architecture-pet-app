@@ -48,9 +48,11 @@ inline fun <T, E : Error> Result<T, E>.onError(action: (E) -> Unit): Result<T, E
             action(error)
             this
         }
+
         is Result.Success -> this
     }
 }
+
 inline fun <T, E : Error, R> Result<T, E>.fold(
     onSuccess: (T) -> R,
     onFailure: (E) -> R

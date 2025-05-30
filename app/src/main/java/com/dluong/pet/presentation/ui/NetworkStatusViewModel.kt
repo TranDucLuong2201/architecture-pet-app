@@ -9,8 +9,13 @@ import com.dluong.pet.di.NetworkMonitorEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,30 +27,56 @@ open class NetworkStatusViewModel @Inject constructor(
             NetworkMonitorEntryPoint::class.java
         ).networkMonitor()
     }
+    private val _networkError = MutableStateFlow<String?>(null)
+    val networkError: StateFlow<String?> = _networkError.asStateFlow()
+    private val _isOnline = MutableStateFlow(true) // Default to true to avoid blocking UI
+    val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
+
 
     // This class can be extended by other ViewModels to provide common functionality
     // or properties that are shared across multiple ViewModels in the application.
-    protected val _events = Channel<PetsEvent>()
+    private val _events = Channel<PetsEvent>()
     val events = _events.receiveAsFlow()
+
+    init {
+        observeNetwork()
+    }
 
     private fun observeNetwork() {
         viewModelScope.launch {
-            var lastStatus: Boolean? = null
-            networkMonitor.isOnline.collect { connected ->
-                if (connected != lastStatus) {
-                    lastStatus = connected
-                    if (connected) {
-                        _events.send(PetsEvent.Success("Connected to internet"))
-                    } else {
-                        _events.send(PetsEvent.Error(NetworkError.NO_INTERNET))
+            try {
+                networkMonitor.isOnline
+                    .catch { exception ->
+                        Timber.e(exception, "Error monitoring network connectivity")
+                        _networkError.value = "Unable to monitor network status"
+                        // Continue with assumed online state
+                        _isOnline.value = true
                     }
-                }
+                    .collect { isConnected ->
+                        _isOnline.value = isConnected
+                        _networkError.value = null // Clear any previous errors
+                        Timber.d("Network connectivity changed: $isConnected")
+                    }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to start network monitoring")
+                _networkError.value = "Network monitoring unavailable"
+                _isOnline.value = true // Assume online to not block functionality
             }
         }
     }
 
-    init {
-        observeNetwork()
+    fun clearNetworkError() {
+        _networkError.value = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        try {
+            // Clean up if needed
+            Timber.d("NetworkStatusViewModel cleared")
+        } catch (e: Exception) {
+            Timber.e(e, "Error during NetworkStatusViewModel cleanup")
+        }
     }
 }
 

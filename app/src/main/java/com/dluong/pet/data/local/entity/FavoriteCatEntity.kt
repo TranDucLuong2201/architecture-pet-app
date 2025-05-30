@@ -1,3 +1,5 @@
+
+// FavoriteCatEntity.kt
 package com.dluong.pet.data.local.entity
 
 import androidx.room.ColumnInfo
@@ -21,10 +23,15 @@ data class FavoriteCatEntity(
     val createdAt: Instant,
 )
 
+/**
+ * Extension function to convert FavoriteCatEntity to Pet domain model.
+ * Sets isLiked to true since this is a favorite pet.
+ */
 fun FavoriteCatEntity.toCatDomain(): Pet =
     Pet(
         id = id,
         urlImage = url,
         width = width,
         height = height,
+        isLiked = true, // Always true for favorite pets
     )

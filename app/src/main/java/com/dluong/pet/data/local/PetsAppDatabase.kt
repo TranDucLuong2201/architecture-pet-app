@@ -36,8 +36,6 @@ abstract class PetsAppDatabase : RoomDatabase() {
          * This pattern is used to ensure that the database instance is created only once
          * and is thread-safe.
          * @field INSTANCE The singleton instance of the database.
-         * @param context The application context.
-         * @param queryExecutor The executor for running database queries.
          */
         @Volatile
         private var INSTANCE: PetsAppDatabase? = null
