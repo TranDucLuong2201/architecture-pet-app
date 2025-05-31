@@ -148,6 +148,7 @@ dependencies {
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-android")
         exclude(group = "com.intellij", module = "annotations")
     }
+    implementation(libs.androidx.hilt.common)
     ksp(libs.androidx.room.compiler)
 
     // Dagger Hilt Bundle
@@ -219,6 +220,7 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.bundles.androidx.ui.testing)
     debugImplementation(libs.androidx.ui.tooling)
+    androidTestImplementation(libs.androidx.work.testing)
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Hilt Testing

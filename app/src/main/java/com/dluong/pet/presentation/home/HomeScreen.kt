@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
@@ -141,7 +142,7 @@ fun HomeScreen() {
                                 .fillMaxSize()
                                 .padding(paddingValues)
                         ) {
-                            HorizontalPager(
+                            VerticalPager(
                                 modifier = Modifier
                                     .weight(1f)
                                     .combinedClickable(
