@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+
 android {
     namespace = "com.dluong.pet"
     compileSdk = 35
@@ -226,7 +227,6 @@ dependencies {
     // Hilt Testing
     androidTestImplementation(libs.dagger.hilt.test)
     kspAndroidTest(libs.dagger.hilt.compiler)
-
 }
 
 // Remove the RoomSchemaArgProvider class - not needed for KSP

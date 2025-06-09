@@ -1,4 +1,6 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import org.jetbrains.kotlin.gradle.dsl.KotlinBaseExtension
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
@@ -8,58 +10,95 @@ plugins {
     alias(libs.plugins.kotlin.parcelize) apply false
     alias(libs.plugins.gradle.spotless) apply false
     alias(libs.plugins.kotlin.serialization) apply false
-
+    alias(libs.plugins.android.library) apply false
+    id("com.github.ben-manes.versions") version "0.46.0"
+    id("nl.littlerobots.version-catalog-update") version "0.8.0"
 }
 
 allprojects {
-    afterEvaluate {
-        extensions.findByType<org.jetbrains.kotlin.gradle.dsl.KotlinTopLevelExtension>()?.run {
-            jvmToolchain {
-                languageVersion = JavaLanguageVersion.of(21)
-                vendor = JvmVendorSpec.AZUL
+    // Apply spotless to all projects including root (if root has Kotlin files)
+    plugins.withId("com.diffplug.spotless") {
+        configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+            val ktlintVersion = rootProject.libs.versions.ktlint.get()
+            kotlin {
+                target("**/*.kt")
+                targetExclude(
+                    "**/Res.kt",
+                    "**/build/**/*.kt",
+                )
+                ktlint(ktlintVersion)
+                trimTrailingWhitespace()
+                indentWithSpaces()
+                endWithNewline()
+            }
+            kotlinGradle {
+                target("**/*.gradle.kts", "*.gradle.kts")
+                targetExclude("**/build/**/*.kts")
+                ktlint(ktlintVersion)
+                trimTrailingWhitespace()
+                indentWithSpaces()
+                endWithNewline()
             }
         }
     }
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    afterEvaluate {
+        extensions.findByType<KotlinBaseExtension>()?.let {
+            it.jvmToolchain {
+                languageVersion.set(JavaLanguageVersion.of(21))
+                vendor.set(JvmVendorSpec.AZUL)
+            }
+        }
+    }
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         compilerOptions {
-            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
-            freeCompilerArgs = listOf(
-                "-opt-in=kotlin.RequiresOptIn",
-                "-opt-in=kotlin.ExperimentalStdlibApi",
-                "-opt-in=kotlin.time.ExperimentalTime",
-                "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                "-opt-in=kotlinx.coroutines.FlowPreview",
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+            freeCompilerArgs.set(
+                listOf(
+                    "-opt-in=kotlin.RequiresOptIn",
+                    "-opt-in=kotlin.ExperimentalStdlibApi",
+                    "-opt-in=kotlin.time.ExperimentalTime",
+                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                    "-opt-in=kotlinx.coroutines.FlowPreview"
+                )
             )
         }
     }
-    val ktlintVersion = rootProject.libs.versions.ktlint.get()
-    apply<com.diffplug.gradle.spotless.SpotlessPlugin>()
-    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
-        kotlin {
-            target("**/*.kt")
-            targetExclude(
-                // Compose Multiplatform Res class
-                "**/Res.kt",
-                // Kotlin generated files
-                "**/build/**/*.kt",
-            )
+}
 
-            ktlint(ktlintVersion)
+subprojects {
+    // Apply spotless plugin to all subprojects
+    apply(plugin = "com.diffplug.spotless")
 
-            trimTrailingWhitespace()
-            indentWithSpaces()
-            endWithNewline()
-        }
-        kotlinGradle {
-            target("**/*.gradle.kts", "*.gradle.kts")
-            targetExclude("**/build/**/*.kts")
+    // Apply versions plugin to subprojects to check dependency updates
+    apply(plugin = "com.github.ben-manes.versions")
+}
 
-            ktlint(ktlintVersion)
+versionCatalogUpdate {
+    sortByKey.set(true)
+    keep {
+        keepUnusedVersions.set(true)
+        keepUnusedLibraries.set(true)
+        keepUnusedPlugins.set(true)
+    }
+}
 
-            trimTrailingWhitespace()
-            indentWithSpaces()
-            endWithNewline()
+// Reject non-stable versions for dependency updates
+fun isNonStable(version: String): Boolean {
+    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
+    val regex = Regex("^[0-9,.v-]+(-r)?$")
+    return !stableKeyword && !regex.matches(version)
+}
+
+tasks.withType<DependencyUpdatesTask>().configureEach {
+    resolutionStrategy {
+        componentSelection {
+            all {
+                if (isNonStable(candidate.version) && !isNonStable(currentVersion)) {
+                    reject("Release candidate")
+                }
+            }
         }
     }
 }
