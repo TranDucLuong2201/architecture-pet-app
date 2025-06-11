@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.kotlin.parcelize)
+
 }
 
 android {
@@ -34,8 +36,7 @@ kotlin {
 
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
-
+    implementation(projects.designsystem)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)

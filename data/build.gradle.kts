@@ -15,7 +15,9 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
-
+    buildFeatures {
+        buildConfig = true
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -35,6 +37,7 @@ kotlin {
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(projects.domain)
+    implementation(projects.designsystem)
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
 
@@ -57,4 +60,25 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // Retrofit + OkHttp Bundle
+    implementation(libs.bundles.retrofit.okhttp3) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
+        exclude(group = "com.intellij", module = "annotations")
+    }
+
+    // Moshi Bundle
+    implementation(libs.bundles.moshi) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "com.intellij", module = "annotations")
+    }
+
+    // Ktor Bundle - Comment out nếu không sử dụng
+    implementation(libs.bundles.ktor) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
+        exclude(group = "com.intellij", module = "annotations")
+    }
+
 }

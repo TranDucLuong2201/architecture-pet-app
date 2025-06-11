@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.gradle.spotless) apply false
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.gms.google.services)
+
 }
 
 
@@ -43,6 +45,7 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -126,10 +129,19 @@ configurations.all {
 }
 
 dependencies {
+    implementation(projects.data)
+    implementation(projects.designsystem)
+    implementation(projects.domain)
+    implementation(projects.presentation)
     // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.startup.runtime)
+    implementation(libs.firebase.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+    implementation(libs.kotlinx.coroutines.play.services) // hoặc bản mới hơn
 
     // Compose BOM
     implementation(platform(libs.androidx.compose.bom))
@@ -150,6 +162,7 @@ dependencies {
         exclude(group = "com.intellij", module = "annotations")
     }
     implementation(libs.androidx.hilt.common)
+    implementation(libs.firebase.firestore.ktx)
     ksp(libs.androidx.room.compiler)
 
     // Dagger Hilt Bundle
@@ -162,26 +175,6 @@ dependencies {
     // Coroutines Bundle
     implementation(libs.bundles.kotlinx.coroutines)
 
-    // Retrofit + OkHttp Bundle
-    implementation(libs.bundles.retrofit.okhttp3) {
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
-        exclude(group = "com.intellij", module = "annotations")
-    }
-
-    // Moshi Bundle
-    implementation(libs.bundles.moshi) {
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
-        exclude(group = "com.intellij", module = "annotations")
-    }
-
-    // Ktor Bundle - Comment out nếu không sử dụng
-    implementation(libs.bundles.ktor) {
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
-        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
-        exclude(group = "com.intellij", module = "annotations")
-    }
-
     // Media3 Bundle
     implementation(libs.bundles.media3) {
         exclude(group = "androidx.compose.ui", module = "ui")
@@ -193,6 +186,7 @@ dependencies {
     implementation(libs.bundles.coil) {
         exclude(group = "com.intellij", module = "annotations")
     }
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // RxJava
     implementation(libs.rxjava) {

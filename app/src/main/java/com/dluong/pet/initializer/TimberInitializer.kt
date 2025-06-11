@@ -3,7 +3,7 @@ package com.dluong.pet.initializer
 import android.content.Context
 import androidx.startup.Initializer
 import com.dluong.pet.BuildConfig
-import com.dluong.core.crashlytics.CrashlyticsLoggerTree
+import com.dluong.pet.crashlytics.CrashlyticsLoggerTree
 import timber.log.Timber
 
 /**
